@@ -13,7 +13,7 @@ This repository contains various modules that need to be installed independently
 
 - **gym-gazebo2**: is a toolkit for developing and comparing reinforcement learning algorithms using ROS 2 and Gazebo. Follow the [instructions](https://github.com/AcutronicRobotics/gym-gazebo2/blob/dashing/INSTALL.md) to install it. During "Compile the workspace" step, may need to 
   ```sh
-  pip3 install empy catkin-pkg lark-parser
+  pip3 install empy catkin-pkg lark-parser sip==4.19.8
   ```
   Unzip sip.zip to python3 site-packages/dist-packages folder if "ModuleNotFoundError: No module named 'sipconfig' " during python_orocos_kdl colcon build.
   Unzip PyKDL.so.zip to ros2_mara_ws/install/lib/python3/dist-packages if error "PyKDL.so: undefined symbol: PyString_FromString" encountered during model training, e.g. python3 train_ppo2_mlp.py
