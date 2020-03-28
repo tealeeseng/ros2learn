@@ -11,7 +11,7 @@ git submodule update --init --recursive
 ### Install each module
 This repository contains various modules that need to be installed independently:
 
-- **gym-gazebo2**: is a toolkit for developing and comparing reinforcement learning algorithms using ROS 2 and Gazebo. Follow the [instructions](https://github.com/AcutronicRobotics/gym-gazebo2/blob/dashing/INSTALL.md) to install it. May need to 
+- **gym-gazebo2**: is a toolkit for developing and comparing reinforcement learning algorithms using ROS 2 and Gazebo. Follow the [instructions](https://github.com/AcutronicRobotics/gym-gazebo2/blob/dashing/INSTALL.md) to install it. During "Compile the workspace" step, may need to 
   ```sh
   pip3 install empy catkin-pkg lark-parser
   ```
