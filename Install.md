@@ -1,6 +1,6 @@
 ### Get the code
 ```
-cd ~ && git clone -b dashing https://github.com/AcutronicRobotics/ros2learn.git
+cd ~ && git clone -b dashing https://github.com/XiaoyanYang2008/ros2learn.git
 cd ros2learn
 git submodule update --init --recursive
 ```
