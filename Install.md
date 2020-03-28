@@ -11,7 +11,11 @@ git submodule update --init --recursive
 ### Install each module
 This repository contains various modules that need to be installed independently:
 
-- **gym-gazebo2**: is a toolkit for developing and comparing reinforcement learning algorithms using ROS 2 and Gazebo. Follow the [instructions](https://github.com/AcutronicRobotics/gym-gazebo2/blob/dashing/INSTALL.md) to install it.
+- **gym-gazebo2**: is a toolkit for developing and comparing reinforcement learning algorithms using ROS 2 and Gazebo. Follow the [instructions](https://github.com/AcutronicRobotics/gym-gazebo2/blob/dashing/INSTALL.md) to install it. May need to 
+  ```sh
+  pip3 install empy catkin-pkg lark-parser
+  ```
+  Unzip sip.zip to python3 site-packages/dist-packages folder if "ModuleNotFoundError: No module named 'sipconfig' " during python_orocos_kdl colcon build 
 
 - **baselines**: is a slightly adapted version of OpenAI's baselines repository to address robotics use cases with a set of high-quality implementations of reinforcement learning algorithms. To install it:
 
