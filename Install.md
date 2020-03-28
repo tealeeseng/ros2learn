@@ -15,7 +15,8 @@ This repository contains various modules that need to be installed independently
   ```sh
   pip3 install empy catkin-pkg lark-parser
   ```
-  Unzip sip.zip to python3 site-packages/dist-packages folder if "ModuleNotFoundError: No module named 'sipconfig' " during python_orocos_kdl colcon build 
+  Unzip sip.zip to python3 site-packages/dist-packages folder if "ModuleNotFoundError: No module named 'sipconfig' " during python_orocos_kdl colcon build.
+  Unzip PyKDL.so.zip to ros2_mara_ws/install/lib/python3/dist-packages if error "PyKDL.so: undefined symbol: PyString_FromString" encountered during model training, e.g. python3 train_ppo2_mlp.py
 
 - **baselines**: is a slightly adapted version of OpenAI's baselines repository to address robotics use cases with a set of high-quality implementations of reinforcement learning algorithms. To install it:
 
