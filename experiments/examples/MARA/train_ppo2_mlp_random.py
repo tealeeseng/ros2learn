@@ -62,7 +62,7 @@ alg_kwargs = dict(
         num_layers = 8,
         num_hidden = 256,
         layer_norm = True,
-        activation = tf.nn.relu
+        activation = tf.nn.relu,
         nsteps = 1024,
         nminibatches = 4, #batchsize = nevn * nsteps // nminibatches
         lam = 0.95,
