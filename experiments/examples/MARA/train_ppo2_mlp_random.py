@@ -59,10 +59,10 @@ def make_env():
 env_type = 'mara_mlp_random'
 # alg_kwargs = get_learn_function_defaults('ppo2', env_type)
 alg_kwargs = dict(
-        num_layers = 8,
+        num_layers = 2,
         num_hidden = 256,
-        layer_norm = True,
-        activation = tf.nn.relu,
+        layer_norm = False,
+        # activation = tf.nn.relu,
         nsteps = 1024,
         nminibatches = 4, #batchsize = nevn * nsteps // nminibatches
         lam = 0.95,

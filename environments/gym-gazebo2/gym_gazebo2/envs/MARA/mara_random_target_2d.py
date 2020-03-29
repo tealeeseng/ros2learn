@@ -187,9 +187,9 @@ class MARARandomTarget2DEnv(gym.Env):
     def sample_position(self):
         sample = np.random.uniform(0,1)
         if sample > 0.5:
-            return [ -0.5 , 0.2 , 0.25 ]
+            return [ -0.5 , 0.2 , 0.1 ]
         else:
-            return [ -0.5 , -0.2 , 0.25 ]
+            return [ -0.5 , -0.2 , 0.1 ]
         
     def spawn_target(self):
         self.targetPosition = self.sample_position()
