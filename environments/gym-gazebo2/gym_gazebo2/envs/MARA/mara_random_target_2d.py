@@ -170,8 +170,12 @@ class MARARandomTarget2DEnv(gym.Env):
         # # Here idially we should find the control range of the robot. Unfortunatelly in ROS/KDL there is nothing like this.
         # # I have tested this with the mujoco enviroment and the output is always same low[-1.,-1.], high[1.,1.]
 
-        low = -np.pi * np.ones(self.numJoints)
-        high = np.pi * np.ones(self.numJoints)
+        # low = -np.pi * np.ones(self.numJoints)
+        # high = np.pi * np.ones(self.numJoints)
+
+        # for line training.
+        low = -1/2 * np.pi * np.ones(self.numJoints-3)
+        high = 1/2 * np.pi * np.ones(self.numJoints-3)
 
         self.action_space = spaces.Box(low, high)
 
@@ -189,11 +193,13 @@ class MARARandomTarget2DEnv(gym.Env):
         self.collided = 0
 
     def sample_position(self):
+        # [ -0.5 , 0.2 , 0.1 ], [ -0.5 , -0.2 , 0.1 ]
+        # change to line. 
         sample = np.random.uniform(0,1)
         if sample > 0.5:
-            return [ -0.5 , 0.2 , 0.1 ]
+            return [ -0.8 , 0.0 , 0.1 ]
         else:
-            return [ -0.5 , -0.2 , 0.1 ]
+            return [ -0.2 , 0.0 , 0.1 ]
         
     def spawn_target(self):
         self.targetPosition = self.sample_position()
@@ -322,7 +328,8 @@ class MARARandomTarget2DEnv(gym.Env):
 
         # Execute "action"
         self._pub.publish(ut_mara.getTrajectoryMessage(
-            action[:self.numJoints],
+            # action[:self.numJoints],
+            np.array([-1.5708, action[0], action[1], 0, action[2], 0]),
             self.environment['jointOrder'],
             self.velocity))
 
