@@ -30,6 +30,7 @@ keys/
 .idea
 
 logs/
+.vscode/
 
 .ipynb_checkpoints
 ghostdriver.log

@@ -101,7 +101,7 @@
   </joint>
 
   <joint name="camera_support2_to_camera" type="fixed">
-    <origin rpy="0 0 0" xyz="0 0.018 0.012"/>
+    <origin rpy="1.57 0 0" xyz="0 0.018 0.012"/>
     <parent link="camera_support2_link"/>
     <child link="camera_link"/>
   </joint>
