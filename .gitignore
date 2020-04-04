@@ -1,6 +1,8 @@
 # Project specified.
 experiments/examples/MARA/models/
-
+robot_ws/build/
+robot_ws/install/
+robot_ws/log/
 
 #
 *.swp
