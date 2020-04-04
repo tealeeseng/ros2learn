@@ -161,7 +161,7 @@ class MARARandomTarget2DEnv(gym.Env):
         # Initialize a KDL Jacobian solver from the chain.
         self.jacSolver = ChainJntToJacSolver(self.mara_chain)
 
-        self.obs_dim = self.numJoints + 6 + 12
+        self.obs_dim = self.numJoints + 6 + 12 +3
         
         # 12 for
         # np.reshape(current_eePos_tgt,-1),
@@ -174,7 +174,8 @@ class MARARandomTarget2DEnv(gym.Env):
         # high = np.pi * np.ones(self.numJoints)
 
         # for line training.
-        low = -1/2 * np.pi * np.ones(self.numJoints-3)
+        # low = -1/2 * np.pi * np.ones(self.numJoints-3)
+        low = 0 * np.ones(self.numJoints-3)
         high = 1/2 * np.pi * np.ones(self.numJoints-3)
 
         self.action_space = spaces.Box(low, high)
@@ -195,14 +196,15 @@ class MARARandomTarget2DEnv(gym.Env):
     def sample_position(self):
         # [ -0.5 , 0.2 , 0.1 ], [ -0.5 , -0.2 , 0.1 ]
         # change to line. 
-        
+
+
         # sample = np.random.uniform(0,1)
         # if sample > 0.5:
         #     return [ -0.8 , 0.0 , 0.1 ]
         # else:
-        #     return [ -0.2 , 0.0 , 0.1 ]
+        #     return [ -0.5 , 0.0 , 0.1 ]
 
-        return [ -0.8 , 0.0 , 0.1 ]
+        return [ -0.5 , 0.0 , 0.1 ]
         
     def spawn_target(self):
         self.targetPosition = self.sample_position()
@@ -295,7 +297,11 @@ class MARARandomTarget2DEnv(gym.Env):
                           np.reshape(eePos_points, -1),
                           np.reshape(eeVelocities, -1),
                           np.reshape(current_eePos_tgt,-1),
-                          np.reshape(rot.reshape(1, 9),-1)]
+                          np.reshape(rot.reshape(1, 9),-1),
+                          np.reshape(self.targetPosition,-1)]
+
+
+                        #   np.reshape(rot.reshape(1, 9),-1)]
 
                           #np.reshape(self.targetPosition,-1)]
 
