@@ -193,7 +193,8 @@ class Robot(Node):
             self.get_logger().info('/spawn_entity service not available, waiting again...')
 
         # modelXml = self.getTargetSdf()
-        modelXml = self.load_random_urdf(urdf_obj)
+        # modelXml = self.load_random_urdf(urdf_obj)
+        modelXml = self.load_coke_can()
         pose = Pose()
         pose.position.x = self.targetPosition[0]
         pose.position.y = self.targetPosition[1]
@@ -206,7 +207,7 @@ class Robot(Node):
 
         #override previous spawn_request element.
         self.spawn_request = SpawnEntity.Request()
-        self.spawn_request.name = "target"+urdf_obj
+        self.spawn_request.name = "target_"+urdf_obj
         self.spawn_request.xml = modelXml
         self.spawn_request.robot_namespace = ""
         self.spawn_request.initial_pose = pose
@@ -218,6 +219,18 @@ class Robot(Node):
         if target_future.result() is not None:
             print('response: %r' % target_future.result())
 
+    def load_coke_can(self):
+        modelXml = """<?xml version='1.0'?>
+                        <sdf version='1.6'>
+                            <model name="can1">
+                                <include>
+                                <static>true</static>
+                                <uri>model://coke_can</uri>
+                                </include>
+                                <gravity>1</gravity>
+                            </model>
+                            </sdf>"""
+        return modelXml
 
     def getTargetSdf(self):
         modelXml = """<?xml version='1.0'?>
@@ -268,7 +281,7 @@ class Robot(Node):
 
     def sample_position(self):
             # [ -0.5 , 0.2 , 0.1 ], [ -0.5 , -0.2 , 0.1 ] #sample data. initial 2 points in original setup.
-        pos = [-1 * np.random.uniform(0,0.8), np.random.uniform(0,0.8), np.random.uniform(0,0.2)]
+        pos = [-1 * np.random.uniform(0,0.8), np.random.uniform(0,0.8), np.random.uniform(0.2,0.4)]
         print('object pos, ', pos)
         return pos
             # sample_x = np.random.uniform(0,1)
@@ -340,7 +353,7 @@ def main(args=None):
     robot = Robot()
     rclpy.spin_once(robot)
 
-    obj = "000/000.urdf"
+    obj = "coke0"
     robot.spawn_target(obj)
     rclpy.spin_once(robot)
 
