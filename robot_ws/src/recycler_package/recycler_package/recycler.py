@@ -56,6 +56,11 @@ class Robot(Node):
             JointTrajectoryControllerState, JOINT_SUBSCRIBER, self.observation_callback, qos_profile=qos_profile_sensor_data)
         self.pub = self.create_publisher(
             JointTrajectory, JOINT_PUBLISHER, qos_profile=qos_profile_sensor_data)
+        
+        self.spawn_cli = self.create_client(SpawnEntity, '/spawn_entity')
+
+        # delete entity
+        self.delete_entity_cli = self.create_client(DeleteEntity, '/delete_entity')
         self.initArm()
 
     def initArm(self):
@@ -86,6 +91,8 @@ class Robot(Node):
         self.m_linkNames = copy.deepcopy(LINK_NAMES)
         self.ee_points = copy.deepcopy(EE_POINTS)
         self.m_jointOrder = copy.deepcopy(JOINT_ORDER)
+        self.target_orientation = np.asarray([0., 0.7071068, 0.7071068, 0.]) # arrow looking down [w, x, y, z]
+
 
         _, self.ur_tree = tree_urdf.treeFromFile(urdfPath)
         # Retrieve a chain structure between the base and the start of the end effector.
@@ -179,6 +186,104 @@ class Robot(Node):
 
             return current_eePos_tgt
 
+    def spawn_target(self, urdf_obj):
+        self.targetPosition = self.sample_position()
+
+        while not self.spawn_cli.wait_for_service(timeout_sec=1.0):
+            self.get_logger().info('/spawn_entity service not available, waiting again...')
+
+        # modelXml = self.getTargetSdf()
+        modelXml = self.load_random_urdf(urdf_obj)
+        pose = Pose()
+        pose.position.x = self.targetPosition[0]
+        pose.position.y = self.targetPosition[1]
+        pose.position.z = self.targetPosition[2]
+        pose.orientation.x = self.target_orientation[1]
+        pose.orientation.y= self.target_orientation[2]
+        pose.orientation.z = self.target_orientation[3]
+        pose.orientation.w = self.target_orientation[0]
+
+
+        #override previous spawn_request element.
+        self.spawn_request = SpawnEntity.Request()
+        self.spawn_request.name = "target"+urdf_obj
+        self.spawn_request.xml = modelXml
+        self.spawn_request.robot_namespace = ""
+        self.spawn_request.initial_pose = pose
+        self.spawn_request.reference_frame = "world"
+
+        #ROS2 Spawn Entity
+        target_future = self.spawn_cli.call_async(self.spawn_request)
+        rclpy.spin_until_future_complete(self, target_future)
+        if target_future.result() is not None:
+            print('response: %r' % target_future.result())
+
+
+    def getTargetSdf(self):
+        modelXml = """<?xml version='1.0'?>
+                        <sdf version='1.6'>
+                        <model name='target'>
+                            <link name='cylinder0'>
+                            <pose frame=''>0 0 0 0 0 0</pose>
+                            <inertial>
+                                <pose frame=''>0 0 0 0 0 0</pose>
+                                <mass>5</mass>
+                                <inertia>
+                                <ixx>1</ixx>
+                                <ixy>0</ixy>
+                                <ixz>0</ixz>
+                                <iyy>1</iyy>
+                                <iyz>0</iyz>
+                                <izz>1</izz>
+                                </inertia>
+                            </inertial>
+                            <gravity>1</gravity>
+                            <velocity_decay/>
+                            <self_collide>0</self_collide>
+                            <enable_wind>0</enable_wind>
+                            <kinematic>0</kinematic>
+                            <visual name='cylinder0_visual'>
+                                <pose frame=''>0 0 0 0 0 0</pose>
+                                <geometry>
+                                <sphere>
+                                    <radius>0.01</radius>
+                                </sphere>
+                                </geometry>
+                                <material>
+                                <script>
+                                    <name>Gazebo/Green</name>
+                                    <uri>file://media/materials/scripts/gazebo.material</uri>
+                                </script>
+                                <shader type='pixel'/>
+                                </material>
+                                <transparency>0.1</transparency>
+                                <cast_shadows>1</cast_shadows>
+                            </visual>
+                            </link>
+                            <static>1</static>
+                            <allow_auto_disable>1</allow_auto_disable>
+                        </model>
+                        </sdf>"""
+        return modelXml
+
+    def sample_position(self):
+            # [ -0.5 , 0.2 , 0.1 ], [ -0.5 , -0.2 , 0.1 ] #sample data. initial 2 points in original setup.
+        pos = [-1 * np.random.uniform(0,0.8), np.random.uniform(0,0.8), np.random.uniform(0,0.2)]
+        print('object pos, ', pos)
+        return pos
+            # sample_x = np.random.uniform(0,1)
+
+            # if sample > 0.5:
+            #     return [ -0.8 , 0.0 , 0.1 ]
+            # else:
+            #     return [ -0.5 , 0.0 , 0.1 ]
+    def load_random_urdf(self, obj):
+        urdfPath = get_prefix_path("mara_description") + "/share/mara_description/random_urdfs/" + obj
+        urdf_file = open(urdfPath,"r")
+        urdf_string = urdf_file.read()
+        print("urdf_string:", urdf_string)
+        return urdf_string
+
 
 def generate_joints_for_line(args=None):
     rclpy.init(args=args)
@@ -203,10 +308,10 @@ def generate_joints_for_line(args=None):
                 if 0 <= current_eePos_tgt[2] < 0.2:
                     data = [m2, m3, m5]
                     data.extend(current_eePos_tgt)
-                    print('data,', data)
+                    # print('data,', data)
                     
                     df = pd.Series(data, index=data_frame.columns)
-                    print('df,', df)
+                    # print('df,', df)
                     data_frame = data_frame.append(df, ignore_index=True)
                     robot.get_logger().info(str(data))
 
@@ -222,17 +327,27 @@ def generate_joints_for_line(args=None):
     robot.destroy_node()
     rclpy.shutdown()
 
-    print('END recycler_package.')
+    print('END generate_joints_for_line().')
+
+
+
+# def main(args=None):
+#     generate_joints_for_line(args)
 
 
 def main(args=None):
-    generate_joints_for_line(args)
-
-
-def main_(args=None):
     rclpy.init(args=args)
     robot = Robot()
     rclpy.spin_once(robot)
+
+    obj = "000/000.urdf"
+    robot.spawn_target(obj)
+    rclpy.spin_once(robot)
+
+
+
+
+
 
     
 
