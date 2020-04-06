@@ -219,6 +219,8 @@ class Robot(Node):
         if target_future.result() is not None:
             print('response: %r' % target_future.result())
 
+        return pose
+
     def load_coke_can(self):
         modelXml = """<?xml version='1.0'?>
                         <sdf version='1.6'>
@@ -328,7 +330,9 @@ def generate_joints_for_line(args=None):
                     data_frame = data_frame.append(df, ignore_index=True)
                     robot.get_logger().info(str(data))
 
-    data_frame.to_csv('joints_xyz.csv')
+    joints_df = data_frame.read_csv(get_prefix_path("mara_description") + "/share/recycler_package/joints_xyz.csv")
+    joints_df
+
 
     robot.stretch(np.array([-np.pi/2, 0, -np.pi/2-0.1, 0, -np.pi/2-0.5, 0]))
     rclpy.spin_once(robot)
@@ -344,25 +348,16 @@ def generate_joints_for_line(args=None):
 
 
 
-# def main(args=None):
-#     generate_joints_for_line(args)
-
-
-def main(args=None):
+def drop_coke_can(args=None):
     rclpy.init(args=args)
     robot = Robot()
     rclpy.spin_once(robot)
 
     obj = "coke0"
-    robot.spawn_target(obj)
+    pose = robot.spawn_target(obj)
     rclpy.spin_once(robot)
 
-
-
-
-
-
-    
+    return pose
 
     #     pos,  [[-1.05369001e-03  1.92728881e-05  1.11664069e+00]] rot: [[ 1.00000000e+00 -4.47419942e-06 -2.23629828e-11]
     #  [ 4.47419942e-06  1.00000000e+00  2.87694329e-05]
@@ -371,6 +366,55 @@ def main(args=None):
     # print(general_utils.inverseKinematics(mara_chain, pos, rot))  # can't understand rot and generate data for that.
 
     # def inverseKinematics(robotChain, pos, rot, qGuess=None, minJoints=None, maxJoints=None):
+
+    # TODO: have to trial run first. Pseudo code alike. 
+def grab_can_and_drop_delete_entity(args=None):
+    rclpy.init(args=args)
+    robot = Robot()
+    rclpy.spin_once(robot)
+
+    joints = load_joints()
+
+
+    pose = drop_coke_can()
+    # joints_df = pd.read_csv('joints_xyz.csv')
+    
+    x, y, z = pose.position.x, pose.position.y, pose.position.z
+
+    distance = np.sqrt(x^2+y^2)
+    # TODO: how to calculate m1 rotation?
+    
+    m1 = 0.0
+
+
+    joints = search_joints(joints, distance)
+
+    if joints is not None:
+        m2 = joints['m2']
+        m3 = joints['m3']
+        m5 = joints['m5']
+        robot.stretch([m1, m2, m3, 0.0, m5, 0.0])
+
+    pass
+
+
+def search_joints(joints, x_distance):
+    data =None
+    if sum(joints['x']>x_distance)>0:
+        data = joints[joints['x']>x_distance][['m2','m3','m5']].iloc[0]
+    return data
+
+def load_joints():
+    joints_df = pd.read_csv('joints_xyz.csv')
+    joints_df['x']=joints_df['x']*-1
+    joints_df = joints_df.sort_values(by='x')
+    joints = joints_df.drop('index', axis=1)
+    return joints
+
+def main(args=None):
+    # generate_joints_for_line(args)
+    drop_coke_can()
+    # grab_can_and_drop_delete_entity()
 
 
 if __name__ == '__main__':
