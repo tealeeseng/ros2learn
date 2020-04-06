@@ -14,7 +14,7 @@ log/
 .pytest_cache
 .DS_Store
 .idea
-*.csv
+
 
 # Setuptools distribution and build folders.
 /dist/
