@@ -29,6 +29,8 @@ import time
 import gym
 from PyKDL import ChainJntToJacSolver  # For KDL Jacobians
 import pandas as pd
+from ament_index_python.packages import get_package_share_directory
+
 
 gym.logger.set_level(40)  # hide warnings
 
@@ -116,6 +118,7 @@ class Robot(Node):
             joints,
             self.m_jointOrder,
             0.3))
+        
 
     def take_observation(self, targetPosition):
         """
@@ -186,6 +189,18 @@ class Robot(Node):
 
             return current_eePos_tgt
 
+    def delete_can(self, target_name):
+        # delete entity
+        while not self.delete_entity_cli.wait_for_service(timeout_sec=1.0):
+            self.get_logger().info('/reset_simulation service not available, waiting again...')
+
+        req = DeleteEntity.Request()
+        req.name = target_name
+        delete_future = self.delete_entity_cli.call_async(req)
+        rclpy.spin_until_future_complete(self, delete_future)
+        if delete_future.result() is not None:
+            self.get_logger().info('delete_future response: %r' % delete_future.result())
+
     def spawn_target(self, urdf_obj):
         self.targetPosition = self.sample_position()
 
@@ -207,7 +222,7 @@ class Robot(Node):
 
         #override previous spawn_request element.
         self.spawn_request = SpawnEntity.Request()
-        self.spawn_request.name = "target_"+urdf_obj
+        self.spawn_request.name = urdf_obj
         self.spawn_request.xml = modelXml
         self.spawn_request.robot_namespace = ""
         self.spawn_request.initial_pose = pose
@@ -217,7 +232,7 @@ class Robot(Node):
         target_future = self.spawn_cli.call_async(self.spawn_request)
         rclpy.spin_until_future_complete(self, target_future)
         if target_future.result() is not None:
-            print('response: %r' % target_future.result())
+            print('spawn_request response: %r' % target_future.result())
 
         return pose
 
@@ -229,7 +244,6 @@ class Robot(Node):
                                 <static>true</static>
                                 <uri>model://coke_can</uri>
                                 </include>
-                                <gravity>1</gravity>
                             </model>
                             </sdf>"""
         return modelXml
@@ -283,7 +297,7 @@ class Robot(Node):
 
     def sample_position(self):
             # [ -0.5 , 0.2 , 0.1 ], [ -0.5 , -0.2 , 0.1 ] #sample data. initial 2 points in original setup.
-        pos = [-1 * np.random.uniform(0,0.8), np.random.uniform(0,0.8), np.random.uniform(0.2,0.4)]
+        pos = [-1 * np.random.uniform(0,0.65), np.random.uniform(0,0.65), 0.15]
         print('object pos, ', pos)
         return pos
             # sample_x = np.random.uniform(0,1)
@@ -330,8 +344,8 @@ def generate_joints_for_line(args=None):
                     data_frame = data_frame.append(df, ignore_index=True)
                     robot.get_logger().info(str(data))
 
-    joints_df = data_frame.read_csv(get_prefix_path("mara_description") + "/share/recycler_package/joints_xyz.csv")
-    joints_df
+    
+    data_frame.to_csv('joints_xyz.csv')
 
 
     robot.stretch(np.array([-np.pi/2, 0, -np.pi/2-0.1, 0, -np.pi/2-0.5, 0]))
@@ -348,12 +362,14 @@ def generate_joints_for_line(args=None):
 
 
 
-def drop_coke_can(args=None):
-    rclpy.init(args=args)
-    robot = Robot()
-    rclpy.spin_once(robot)
+def drop_coke_can(robot = None):
+    if robot is None:
+        rclpy.init()
+        robot = Robot()
+        rclpy.spin_once(robot)
 
     obj = "coke0"
+    robot.delete_can(obj)
     pose = robot.spawn_target(obj)
     rclpy.spin_once(robot)
 
@@ -367,24 +383,18 @@ def drop_coke_can(args=None):
 
     # def inverseKinematics(robotChain, pos, rot, qGuess=None, minJoints=None, maxJoints=None):
 
-    # TODO: have to trial run first. Pseudo code alike. 
-def grab_can_and_drop_delete_entity(args=None):
-    rclpy.init(args=args)
-    robot = Robot()
-    rclpy.spin_once(robot)
+def grab_can_and_drop_delete_entity(robot, pose):
+    if robot is None:
+        rclpy.init()
+        robot = Robot()
+        rclpy.spin_once(robot)
 
     joints = load_joints()
-
-
-    pose = drop_coke_can()
-    # joints_df = pd.read_csv('joints_xyz.csv')
     
     x, y, z = pose.position.x, pose.position.y, pose.position.z
 
-    distance = np.sqrt(x^2+y^2)
-    # TODO: how to calculate m1 rotation?
-    
-    m1 = 0.0
+    distance = np.sqrt(x*x+y*y)     
+    m1 = -np.pi/2- np.tan(y/-x) # reverse sign of x to let it handle things appear on left hand side. +y move along green axis.
 
 
     joints = search_joints(joints, distance)
@@ -393,9 +403,11 @@ def grab_can_and_drop_delete_entity(args=None):
         m2 = joints['m2']
         m3 = joints['m3']
         m5 = joints['m5']
-        robot.stretch([m1, m2, m3, 0.0, m5, 0.0])
+        robot.stretch(np.array([m1, m2, m3, 0.0, m5, 0.0]))
+        rclpy.spin_once(robot)
 
-    pass
+
+    
 
 
 def search_joints(joints, x_distance):
@@ -405,16 +417,20 @@ def search_joints(joints, x_distance):
     return data
 
 def load_joints():
-    joints_df = pd.read_csv('joints_xyz.csv')
+    joints_df = pd.read_csv(get_package_share_directory('recycler_package')+'/resource/joints_xyz.csv')
     joints_df['x']=joints_df['x']*-1
     joints_df = joints_df.sort_values(by='x')
     joints = joints_df.drop('index', axis=1)
     return joints
 
 def main(args=None):
+    rclpy.init(args=args)
+    robot = Robot()
+    rclpy.spin_once(robot)
+
     # generate_joints_for_line(args)
-    drop_coke_can()
-    # grab_can_and_drop_delete_entity()
+    pose = drop_coke_can(robot)
+    grab_can_and_drop_delete_entity(robot, pose)
 
 
 if __name__ == '__main__':
