@@ -319,7 +319,7 @@ def generate_joints_for_line(args=None):
     robot = Robot()
     rclpy.spin_once(robot)
 
-    STEP = 0.1
+    STEP = 0.05
     data_frame = pd.DataFrame(columns=['m2', 'm3', 'm5', 'x', 'y', 'z'])
 
     # can we fix motor 1 4,6, to train free moving arm on a line?
@@ -330,6 +330,7 @@ def generate_joints_for_line(args=None):
 
                 # sample data, [-np.pi/2, 0.5, -.5, 0, -1.2, 0]
                 robot.stretch(np.array([-np.pi/2, m2, m3, 0, m5, 0]))
+                rclpy.spin_once(robot)
                 rclpy.spin_once(robot)
                 current_eePos_tgt = robot.take_observation([0, 0, 0])
                 rclpy.spin_once(robot)
@@ -344,8 +345,9 @@ def generate_joints_for_line(args=None):
                     data_frame = data_frame.append(df, ignore_index=True)
                     robot.get_logger().info(str(data))
 
+
     
-    data_frame.to_csv('joints_xyz.csv')
+    data_frame.to_csv('joints_xyz.csv', index=False)
 
 
     robot.stretch(np.array([-np.pi/2, 0, -np.pi/2-0.1, 0, -np.pi/2-0.5, 0]))
@@ -393,27 +395,33 @@ def grab_can_and_drop_delete_entity(robot, pose):
     
     x, y, z = pose.position.x, pose.position.y, pose.position.z
 
-    distance = np.sqrt(x*x+y*y)     
-    m1 = -np.pi/2- np.tan(y/-x) # reverse sign of x to let it handle things appear on left hand side. +y move along green axis.
+    distance = np.sqrt(x*x+y*y)
+    rotation = np.arctan2(-x, y)
+    print("x, y, rotation :", x, y, rotation)
+
+    m1 = -np.pi+ rotation  # reverse sign of x to let it handle things appear on left hand side. +y move along green axis.
 
 
-    joints = search_joints(joints, distance)
+    joints = search_joints(joints, distance, 0.15)
 
     if joints is not None:
         m2 = joints['m2']
         m3 = joints['m3']
         m5 = joints['m5']
+        print('m1 m2 m3 m5:',m1,m2,m3,m5)
         robot.stretch(np.array([m1, m2, m3, 0.0, m5, 0.0]))
         rclpy.spin_once(robot)
+        rclpy.spin_once(robot)
+
+        # robot.stretch(np.array([m1, m2, m3, 0.0, m5, 0.0]))
+        # rclpy.spin_once(robot)
 
 
-    
-
-
-def search_joints(joints, x_distance):
+def search_joints(joints, x_distance, z):
     data =None
-    if sum(joints['x']>x_distance)>0:
-        data = joints[joints['x']>x_distance][['m2','m3','m5']].iloc[0]
+    idx = np.where( (joints['x']>x_distance) & (joints['z'] < z))
+    if np.sum(idx)>0:
+        data = joints.loc[idx][['m2','m3','m5']].iloc[0]
     return data
 
 def load_joints():
@@ -428,9 +436,11 @@ def main(args=None):
     robot = Robot()
     rclpy.spin_once(robot)
 
-    # generate_joints_for_line(args)
     pose = drop_coke_can(robot)
     grab_can_and_drop_delete_entity(robot, pose)
+
+def main_(args=None):
+    generate_joints_for_line(args)
 
 
 if __name__ == '__main__':
