@@ -117,7 +117,7 @@ class Robot(Node):
         self.pub.publish(ut_mara.getTrajectoryMessage(
             joints,
             self.m_jointOrder,
-            0.3))
+            0.1))
         
 
     def take_observation(self, targetPosition):
@@ -297,7 +297,7 @@ class Robot(Node):
 
     def sample_position(self):
             # [ -0.5 , 0.2 , 0.1 ], [ -0.5 , -0.2 , 0.1 ] #sample data. initial 2 points in original setup.
-        pos = [-1 * np.random.uniform(0,0.65), np.random.uniform(0,0.65), 0.15]
+        pos = [-1 * np.random.uniform(0.1,0.6), np.random.uniform(0.1,0.6), 0.15]
         print('object pos, ', pos)
         return pos
             # sample_x = np.random.uniform(0,1)
@@ -313,8 +313,55 @@ class Robot(Node):
         print("urdf_string:", urdf_string)
         return urdf_string
 
-
 def generate_joints_for_line(args=None):
+    rclpy.init(args=args)
+    robot = Robot()
+    rclpy.spin_once(robot)
+
+    STEP = 0.01
+    data_frame = pd.DataFrame(columns=['m2', 'm3', 'm5', 'x', 'y', 'z'])
+
+    # can we fix motor 1 4,6, to train free moving arm on a line?
+
+    for change in np.arange(-0.3, 1, STEP):
+    #             # sample data, [-np.pi/2, 0.5, -.5, 0, -1.2, 0]
+        m2 = 0+change
+        m3 = -np.pi/2+change
+        m5 = -np.pi/2+change
+        robot.stretch(np.array([-np.pi/2, m2, m3, 0, m5, 0]))
+        rclpy.spin_once(robot)
+        rclpy.spin_once(robot)
+        current_eePos_tgt = robot.take_observation([0, 0, 0])
+        rclpy.spin_once(robot)
+
+        if 0 <= current_eePos_tgt[2] < 1:
+            data = [m2, m3, m5]
+            data.extend(current_eePos_tgt)
+            # print('data,', data)
+            
+            df = pd.Series(data, index=data_frame.columns)
+            # print('df,', df)
+            data_frame = data_frame.append(df, ignore_index=True)
+            robot.get_logger().info(str(data))
+
+
+    
+    data_frame.to_csv('../resource/joints_xyz.csv', index=False)
+
+    change = 1
+    robot.stretch(np.array([-np.pi/2, 0+change, -np.pi/2+change, 0, -np.pi/2+change, 0]))
+    rclpy.spin_once(robot)
+    current_eePos_tgt = robot.take_observation([0, 0, 0])
+    rclpy.spin_once(robot)
+    print('current_eePos_tgt, ', current_eePos_tgt)
+
+
+    robot.destroy_node()
+    rclpy.shutdown()
+
+    print('END generate_joints_for_line().')
+
+def generate_joints_for_line_outdated(args=None):
     rclpy.init(args=args)
     robot = Robot()
     rclpy.spin_once(robot)
@@ -325,7 +372,7 @@ def generate_joints_for_line(args=None):
     # can we fix motor 1 4,6, to train free moving arm on a line?
 
     for m2 in np.arange(0, 0.2, STEP):
-        for m3 in np.arange(0, -np.pi/2-0.1, -1*STEP):
+        for m3 in np.arange(-np.pi/2+0.5, -np.pi/2-0.1, -1*STEP):
             for m5 in np.arange(0, -np.pi/2-0.5, -1*STEP):
 
                 # sample data, [-np.pi/2, 0.5, -.5, 0, -1.2, 0]
@@ -335,7 +382,7 @@ def generate_joints_for_line(args=None):
                 current_eePos_tgt = robot.take_observation([0, 0, 0])
                 rclpy.spin_once(robot)
 
-                if 0 <= current_eePos_tgt[2] < 0.2:
+                if 0.08 <= current_eePos_tgt[2] < 0.12:
                     data = [m2, m3, m5]
                     data.extend(current_eePos_tgt)
                     # print('data,', data)
@@ -347,7 +394,7 @@ def generate_joints_for_line(args=None):
 
 
     
-    data_frame.to_csv('joints_xyz.csv', index=False)
+    data_frame.to_csv('../resource/joints_xyz.csv', index=False)
 
 
     robot.stretch(np.array([-np.pi/2, 0, -np.pi/2-0.1, 0, -np.pi/2-0.5, 0]))
@@ -402,16 +449,22 @@ def grab_can_and_drop_delete_entity(robot, pose):
     m1 = -np.pi+ rotation  # reverse sign of x to let it handle things appear on left hand side. +y move along green axis.
 
 
-    joints = search_joints(joints, distance, 0.15)
+    joints = search_joints(joints, distance, 0.2)
+    # joints = calculate_joints()
 
     if joints is not None:
         m2 = joints['m2']
         m3 = joints['m3']
         m5 = joints['m5']
-        print('m1 m2 m3 m5:',m1,m2,m3,m5)
+        print('distance m1 m2 m3 m5:',distance, m1,m2,m3,m5)
         robot.stretch(np.array([m1, m2, m3, 0.0, m5, 0.0]))
         rclpy.spin_once(robot)
+        # robot.stretch(np.array([m1, m2, m3, 0.0, m5, 0.0]))
         rclpy.spin_once(robot)
+        rclpy.spin_once(robot)
+
+    else:
+        print('No Joints found.')
 
         # robot.stretch(np.array([m1, m2, m3, 0.0, m5, 0.0]))
         # rclpy.spin_once(robot)
@@ -419,19 +472,21 @@ def grab_can_and_drop_delete_entity(robot, pose):
 
 def search_joints(joints, x_distance, z):
     data =None
-    idx = np.where( (joints['x']>x_distance) & (joints['z'] < z))
+    idx = np.where( (x_distance<joints['x']) & (joints['x']<x_distance+0.1)  & (joints['z'] < z))
     if np.sum(idx)>0:
+        print('data count:', np.sum(idx))
         data = joints.loc[idx][['m2','m3','m5']].iloc[0]
+        # data = joints.loc[idx][['m2','m3','m5']].median()
     return data
 
 def load_joints():
     joints_df = pd.read_csv(get_package_share_directory('recycler_package')+'/resource/joints_xyz.csv')
     joints_df['x']=joints_df['x']*-1
-    joints_df = joints_df.sort_values(by='x')
-    joints = joints_df.drop('index', axis=1)
+    joints = joints_df.sort_values(by='x')
+    # joints = joints_df.drop('index', axis=1)
     return joints
 
-def main(args=None):
+def main_(args=None):
     rclpy.init(args=args)
     robot = Robot()
     rclpy.spin_once(robot)
@@ -439,7 +494,7 @@ def main(args=None):
     pose = drop_coke_can(robot)
     grab_can_and_drop_delete_entity(robot, pose)
 
-def main_(args=None):
+def main(args=None):
     generate_joints_for_line(args)
 
 
