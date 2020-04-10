@@ -486,7 +486,7 @@ def load_joints():
     # joints = joints_df.drop('index', axis=1)
     return joints
 
-def main_(args=None):
+def main(args=None):
     rclpy.init(args=args)
     robot = Robot()
     rclpy.spin_once(robot)
@@ -494,7 +494,7 @@ def main_(args=None):
     pose = drop_coke_can(robot)
     grab_can_and_drop_delete_entity(robot, pose)
 
-def main(args=None):
+def main_(args=None):
     generate_joints_for_line(args)
 
 
