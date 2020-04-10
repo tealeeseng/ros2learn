@@ -30,6 +30,8 @@ import gym
 from PyKDL import ChainJntToJacSolver  # For KDL Jacobians
 import pandas as pd
 from ament_index_python.packages import get_package_share_directory
+from hrim_actuator_gripper_srvs.srv import ControlFinger
+
 
 
 gym.logger.set_level(40)  # hide warnings
@@ -64,6 +66,16 @@ class Robot(Node):
         # delete entity
         self.delete_entity_cli = self.create_client(
             DeleteEntity, '/delete_entity')
+
+        
+        # Create a gripper client for service "/hrim_actuation_gripper_000000000004/goal"
+        self.gripper = self.create_client(ControlFinger, "/hrim_actuator_gripper_000000000004/fingercontrol")
+
+        # Wait for service to be avaiable before calling it
+        while not self.gripper.wait_for_service(timeout_sec=1.0):
+            self.get_logger().info('service not available, waiting again...')
+        
+
         self.initArm()
 
     def initArm(self):
@@ -106,6 +118,22 @@ class Robot(Node):
         # Initialize a KDL Jacobian solver from the chain.
         self.jacSolver = ChainJntToJacSolver(self.mara_chain)
 
+    def gripper_angle(self, angle=1.57):
+        req = ControlFinger.Request()
+        req.goal_angularposition = angle
+        # self.gripper.call(req)
+        # rclpy.spin_once(self)
+
+        future = self.gripper.call_async(req)
+        rclpy.spin_until_future_complete(self, future)
+            # Analyze the result
+        if future.result() is not None:
+            self.get_logger().info('Goal accepted: %d: ' % future.result().goal_accepted)
+        else:
+            self.get_logger().error('Exception while calling service: %r' % future.exception())
+
+
+
     def observation_callback(self, message):
         """
         Callback method for the subscriber of JointTrajectoryControllerState
@@ -124,7 +152,7 @@ class Robot(Node):
         step2 = step1
         step2[0] = joints[0]
         self.moving_like_robot(step2)
-        
+
         # stetch arm
         self.moving_like_robot(joints)
 
@@ -484,16 +512,21 @@ def grab_can_and_drop_delete_entity(robot, pose):
         m5 = joints['m5']
         print('distance m1 m2 m3 m5:', distance, m1, m2, m3, m5)
         robot.moving(np.array([m1, m2, m3, 0.0, m5, 0.0]))
-        rclpy.spin_once(robot)
-        # robot.stretch(np.array([m1, m2, m3, 0.0, m5, 0.0]))
-        rclpy.spin_once(robot)
-        rclpy.spin_once(robot)
+        # rclpy.spin_once(robot)
+        # # robot.stretch(np.array([m1, m2, m3, 0.0, m5, 0.0]))
+        # rclpy.spin_once(robot)
+        # rclpy.spin_once(robot)
 
     else:
         print('No Joints found.')
+    
+    robot.gripper_angle(0.1)
+    time.sleep(3)
+    robot.moving(np.array([m1+np.pi, m2, m3, 0.0, m5, 0.0]))
+    robot.gripper_angle(1.57)
 
-        # robot.stretch(np.array([m1, m2, m3, 0.0, m5, 0.0]))
-        # rclpy.spin_once(robot)
+
+
 
 
 def search_joints(joints, x_distance, z):
@@ -521,8 +554,9 @@ def main(args=None):
     robot = Robot()
     rclpy.spin_once(robot)
 
-    pose = drop_coke_can(robot)
-    grab_can_and_drop_delete_entity(robot, pose)
+    for i in range(0,3):
+        pose = drop_coke_can(robot)
+        grab_can_and_drop_delete_entity(robot, pose)
 
 
 def main_(args=None):
