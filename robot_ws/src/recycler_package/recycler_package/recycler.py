@@ -58,11 +58,12 @@ class Robot(Node):
             JointTrajectoryControllerState, JOINT_SUBSCRIBER, self.observation_callback, qos_profile=qos_profile_sensor_data)
         self.pub = self.create_publisher(
             JointTrajectory, JOINT_PUBLISHER, qos_profile=qos_profile_sensor_data)
-        
+
         self.spawn_cli = self.create_client(SpawnEntity, '/spawn_entity')
 
         # delete entity
-        self.delete_entity_cli = self.create_client(DeleteEntity, '/delete_entity')
+        self.delete_entity_cli = self.create_client(
+            DeleteEntity, '/delete_entity')
         self.initArm()
 
     def initArm(self):
@@ -93,8 +94,9 @@ class Robot(Node):
         self.m_linkNames = copy.deepcopy(LINK_NAMES)
         self.ee_points = copy.deepcopy(EE_POINTS)
         self.m_jointOrder = copy.deepcopy(JOINT_ORDER)
-        self.target_orientation = np.asarray([0., 0.7071068, 0.7071068, 0.]) # arrow looking down [w, x, y, z]
-
+        self.target_orientation = np.asarray(
+            [0., 0.7071068, 0.7071068, 0.])  # arrow looking down [w, x, y, z]
+        self.current_joints = np.array([0, 0, 0, 0, 0, 0])
 
         _, self.ur_tree = tree_urdf.treeFromFile(urdfPath)
         # Retrieve a chain structure between the base and the start of the end effector.
@@ -111,6 +113,36 @@ class Robot(Node):
         self._observation_msg = message
         # self.get_logger().info(str(observation_msg))
 
+    def moving(self, joints):
+        
+        # lift arm
+        step1 = self.current_joints
+        step1[1] = 0 
+        self.moving_like_robot(step1)
+
+        # rotate
+        step2 = step1
+        step2[0] = joints[0]
+        self.moving_like_robot(step2)
+        
+        # stetch arm
+        self.moving_like_robot(joints)
+
+
+
+    def moving_like_robot(self, joints):
+
+        STEPS=10
+        source = self.current_joints
+        diff = joints - source
+        step_size = diff / STEPS
+
+        for i in range(1,11):
+            self.stretch(source+ i * step_size)
+            time.sleep(0.1)
+
+        self.current_joints = joints
+
     def stretch(self, joints):
         # m_jointOrder = copy.deepcopy(JOINT_ORDER)
 
@@ -118,7 +150,8 @@ class Robot(Node):
             joints,
             self.m_jointOrder,
             0.1))
-        
+
+        rclpy.spin_once(self)
 
     def take_observation(self, targetPosition):
         """
@@ -215,12 +248,10 @@ class Robot(Node):
         pose.position.y = self.targetPosition[1]
         pose.position.z = self.targetPosition[2]
         pose.orientation.x = self.target_orientation[1]
-        pose.orientation.y= self.target_orientation[2]
+        pose.orientation.y = self.target_orientation[2]
         pose.orientation.z = self.target_orientation[3]
         pose.orientation.w = self.target_orientation[0]
-
-
-        #override previous spawn_request element.
+        # override previous spawn_request element.
         self.spawn_request = SpawnEntity.Request()
         self.spawn_request.name = urdf_obj
         self.spawn_request.xml = modelXml
@@ -228,7 +259,7 @@ class Robot(Node):
         self.spawn_request.initial_pose = pose
         self.spawn_request.reference_frame = "world"
 
-        #ROS2 Spawn Entity
+        # ROS2 Spawn Entity
         target_future = self.spawn_cli.call_async(self.spawn_request)
         rclpy.spin_until_future_complete(self, target_future)
         if target_future.result() is not None:
@@ -296,22 +327,25 @@ class Robot(Node):
         return modelXml
 
     def sample_position(self):
-            # [ -0.5 , 0.2 , 0.1 ], [ -0.5 , -0.2 , 0.1 ] #sample data. initial 2 points in original setup.
-        pos = [-1 * np.random.uniform(0.1,0.6), np.random.uniform(0.1,0.6), 0.15]
+        # [ -0.5 , 0.2 , 0.1 ], [ -0.5 , -0.2 , 0.1 ] #sample data. initial 2 points in original setup.
+        pos = [-1 * np.random.uniform(0.1, 0.6),
+               np.random.uniform(0.1, 0.6), 0.15]
         print('object pos, ', pos)
         return pos
-            # sample_x = np.random.uniform(0,1)
+        # sample_x = np.random.uniform(0,1)
 
-            # if sample > 0.5:
-            #     return [ -0.8 , 0.0 , 0.1 ]
-            # else:
-            #     return [ -0.5 , 0.0 , 0.1 ]
+        # if sample > 0.5:
+        #     return [ -0.8 , 0.0 , 0.1 ]
+        # else:
+        #     return [ -0.5 , 0.0 , 0.1 ]
     def load_random_urdf(self, obj):
-        urdfPath = get_prefix_path("mara_description") + "/share/mara_description/random_urdfs/" + obj
-        urdf_file = open(urdfPath,"r")
+        urdfPath = get_prefix_path(
+            "mara_description") + "/share/mara_description/random_urdfs/" + obj
+        urdf_file = open(urdfPath, "r")
         urdf_string = urdf_file.read()
         print("urdf_string:", urdf_string)
         return urdf_string
+
 
 def generate_joints_for_line(args=None):
     rclpy.init(args=args)
@@ -324,7 +358,7 @@ def generate_joints_for_line(args=None):
     # can we fix motor 1 4,6, to train free moving arm on a line?
 
     for change in np.arange(-0.3, 1, STEP):
-    #             # sample data, [-np.pi/2, 0.5, -.5, 0, -1.2, 0]
+        #             # sample data, [-np.pi/2, 0.5, -.5, 0, -1.2, 0]
         m2 = 0+change
         m3 = -np.pi/2+change
         m5 = -np.pi/2+change
@@ -338,28 +372,26 @@ def generate_joints_for_line(args=None):
             data = [m2, m3, m5]
             data.extend(current_eePos_tgt)
             # print('data,', data)
-            
+
             df = pd.Series(data, index=data_frame.columns)
             # print('df,', df)
             data_frame = data_frame.append(df, ignore_index=True)
             robot.get_logger().info(str(data))
-
-
-    
     data_frame.to_csv('../resource/joints_xyz.csv', index=False)
 
     change = 1
-    robot.stretch(np.array([-np.pi/2, 0+change, -np.pi/2+change, 0, -np.pi/2+change, 0]))
+    robot.stretch(
+        np.array([-np.pi/2, 0+change, -np.pi/2+change, 0, -np.pi/2+change, 0]))
     rclpy.spin_once(robot)
     current_eePos_tgt = robot.take_observation([0, 0, 0])
     rclpy.spin_once(robot)
     print('current_eePos_tgt, ', current_eePos_tgt)
 
-
     robot.destroy_node()
     rclpy.shutdown()
 
     print('END generate_joints_for_line().')
+
 
 def generate_joints_for_line_outdated(args=None):
     rclpy.init(args=args)
@@ -386,16 +418,12 @@ def generate_joints_for_line_outdated(args=None):
                     data = [m2, m3, m5]
                     data.extend(current_eePos_tgt)
                     # print('data,', data)
-                    
+
                     df = pd.Series(data, index=data_frame.columns)
                     # print('df,', df)
                     data_frame = data_frame.append(df, ignore_index=True)
                     robot.get_logger().info(str(data))
-
-
-    
     data_frame.to_csv('../resource/joints_xyz.csv', index=False)
-
 
     robot.stretch(np.array([-np.pi/2, 0, -np.pi/2-0.1, 0, -np.pi/2-0.5, 0]))
     rclpy.spin_once(robot)
@@ -403,15 +431,12 @@ def generate_joints_for_line_outdated(args=None):
     rclpy.spin_once(robot)
     print('current_eePos_tgt, ', current_eePos_tgt)
 
-
     robot.destroy_node()
     rclpy.shutdown()
 
     print('END generate_joints_for_line().')
 
-
-
-def drop_coke_can(robot = None):
+def drop_coke_can(robot=None):
     if robot is None:
         rclpy.init()
         robot = Robot()
@@ -432,6 +457,7 @@ def drop_coke_can(robot = None):
 
     # def inverseKinematics(robotChain, pos, rot, qGuess=None, minJoints=None, maxJoints=None):
 
+
 def grab_can_and_drop_delete_entity(robot, pose):
     if robot is None:
         rclpy.init()
@@ -439,15 +465,15 @@ def grab_can_and_drop_delete_entity(robot, pose):
         rclpy.spin_once(robot)
 
     joints = load_joints()
-    
+
     x, y, z = pose.position.x, pose.position.y, pose.position.z
 
     distance = np.sqrt(x*x+y*y)
     rotation = np.arctan2(-x, y)
     print("x, y, rotation :", x, y, rotation)
 
-    m1 = -np.pi+ rotation  # reverse sign of x to let it handle things appear on left hand side. +y move along green axis.
-
+    # reverse sign of x to let it handle things appear on left hand side. +y move along green axis.
+    m1 = -np.pi + rotation
 
     joints = search_joints(joints, distance, 0.2)
     # joints = calculate_joints()
@@ -456,8 +482,8 @@ def grab_can_and_drop_delete_entity(robot, pose):
         m2 = joints['m2']
         m3 = joints['m3']
         m5 = joints['m5']
-        print('distance m1 m2 m3 m5:',distance, m1,m2,m3,m5)
-        robot.stretch(np.array([m1, m2, m3, 0.0, m5, 0.0]))
+        print('distance m1 m2 m3 m5:', distance, m1, m2, m3, m5)
+        robot.moving(np.array([m1, m2, m3, 0.0, m5, 0.0]))
         rclpy.spin_once(robot)
         # robot.stretch(np.array([m1, m2, m3, 0.0, m5, 0.0]))
         rclpy.spin_once(robot)
@@ -471,20 +497,24 @@ def grab_can_and_drop_delete_entity(robot, pose):
 
 
 def search_joints(joints, x_distance, z):
-    data =None
-    idx = np.where( (x_distance<joints['x']) & (joints['x']<x_distance+0.1)  & (joints['z'] < z))
-    if np.sum(idx)>0:
+    data = None
+    idx = np.where((x_distance < joints['x']) & (
+        joints['x'] < x_distance+0.1) & (joints['z'] < z))
+    if np.sum(idx) > 0:
         print('data count:', np.sum(idx))
-        data = joints.loc[idx][['m2','m3','m5']].iloc[0]
+        data = joints.loc[idx][['m2', 'm3', 'm5']].iloc[0]
         # data = joints.loc[idx][['m2','m3','m5']].median()
     return data
 
+
 def load_joints():
-    joints_df = pd.read_csv(get_package_share_directory('recycler_package')+'/resource/joints_xyz.csv')
-    joints_df['x']=joints_df['x']*-1
+    joints_df = pd.read_csv(get_package_share_directory(
+        'recycler_package')+'/resource/joints_xyz.csv')
+    joints_df['x'] = joints_df['x']*-1
     joints = joints_df.sort_values(by='x')
     # joints = joints_df.drop('index', axis=1)
     return joints
+
 
 def main(args=None):
     rclpy.init(args=args)
@@ -493,6 +523,7 @@ def main(args=None):
 
     pose = drop_coke_can(robot)
     grab_can_and_drop_delete_entity(robot, pose)
+
 
 def main_(args=None):
     generate_joints_for_line(args)
