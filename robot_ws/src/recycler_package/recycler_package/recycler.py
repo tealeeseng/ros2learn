@@ -375,7 +375,7 @@ class Robot(Node):
         return urdf_string
 
 
-def generate_joints_for_line(args=None):
+def generate_joints_for_length(args=None):
     rclpy.init(args=args)
     robot = Robot()
     rclpy.spin_once(robot)
@@ -405,6 +405,7 @@ def generate_joints_for_line(args=None):
             # print('df,', df)
             data_frame = data_frame.append(df, ignore_index=True)
             robot.get_logger().info(str(data))
+
     data_frame.to_csv('../resource/joints_xyz.csv', index=False)
 
     change = 1
@@ -413,12 +414,22 @@ def generate_joints_for_line(args=None):
     rclpy.spin_once(robot)
     current_eePos_tgt = robot.take_observation([0, 0, 0])
     rclpy.spin_once(robot)
-    print('current_eePos_tgt, ', current_eePos_tgt)
+    # print('current_eePos_tgt, ', current_eePos_tgt)
 
     robot.destroy_node()
     rclpy.shutdown()
 
-    print('END generate_joints_for_line().')
+    print('END generate_joints_for_length().')
+
+def generate_joints_for_length_core(robot):
+    STEP = 0.01
+    for change in np.arange(-0.3, 1, STEP):
+        m2 = 0+change
+        m3 = -np.pi/2+change
+        m5 = -np.pi/2+change
+        robot.stretch(np.array([-np.pi/2, m2, m3, 0, m5, 0]))
+        rclpy.spin_once(robot)
+        end_effector_pose = robot.take_observation([0, 0, 0])
 
 
 def generate_joints_for_line_outdated(args=None):
@@ -560,7 +571,7 @@ def main(args=None):
 
 
 def main_(args=None):
-    generate_joints_for_line(args)
+    generate_joints_for_length(args)
 
 
 if __name__ == '__main__':
