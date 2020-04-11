@@ -300,7 +300,7 @@ class Robot(Node):
                         <sdf version='1.6'>
                             <model name="can1">
                                 <include>
-                                <static>true</static>
+                                <static>false</static>
                                 <uri>model://coke_can</uri>
                                 </include>
                             </model>
@@ -327,9 +327,9 @@ class Robot(Node):
                             </inertial>
                             <gravity>1</gravity>
                             <velocity_decay/>
-                            <self_collide>0</self_collide>
+                            <self_collide>1</self_collide>
                             <enable_wind>0</enable_wind>
-                            <kinematic>0</kinematic>
+                            <kinematic>1</kinematic>
                             <visual name='cylinder0_visual'>
                                 <pose frame=''>0 0 0 0 0 0</pose>
                                 <geometry>
@@ -348,7 +348,7 @@ class Robot(Node):
                                 <cast_shadows>1</cast_shadows>
                             </visual>
                             </link>
-                            <static>1</static>
+                            <static>0</static>
                             <allow_auto_disable>1</allow_auto_disable>
                         </model>
                         </sdf>"""
