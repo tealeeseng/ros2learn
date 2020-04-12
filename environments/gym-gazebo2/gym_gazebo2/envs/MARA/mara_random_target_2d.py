@@ -175,6 +175,7 @@ class MARARandomTarget2DEnv(gym.Env):
 
         # for line training.
         # low = -1/2 * np.pi * np.ones(self.numJoints-3)
+
         low = 0 * np.ones(self.numJoints-3)
         high = 1/2 * np.pi * np.ones(self.numJoints-3)
 
@@ -198,13 +199,13 @@ class MARARandomTarget2DEnv(gym.Env):
         # change to line. 
 
 
-        # sample = np.random.uniform(0,1)
-        # if sample > 0.5:
-        #     return [ -0.8 , 0.0 , 0.1 ]
-        # else:
-        #     return [ -0.5 , 0.0 , 0.1 ]
+        sample = np.random.uniform(0,1)
+        if sample > 0.5:
+            return [ -0.6 , 0.0 , 0.1 ]
+        else:
+            return [ -0.3 , 0.0 , 0.1 ]
 
-        return [ -0.5 , 0.0 , 0.1 ]
+        # return [ -0.5 , 0.0 , 0.1 ]
         
     def spawn_target(self):
         self.targetPosition = self.sample_position()
