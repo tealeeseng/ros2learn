@@ -86,7 +86,7 @@ class Robot(Node):
         self.subscription_img  # prevent unused variable warning
 
     def initArm(self):
-        print('test')
+        print('start initArm()')
 
         urdf = "reinforcement_learning/mara_robot_gripper_140_camera_train.urdf"
         urdfPath = get_prefix_path("mara_description") + \
@@ -151,7 +151,7 @@ class Robot(Node):
     def moving(self, joints):
         
         # lift arm
-        step1 = self.current_joints
+        step1 = copy.deepcopy(self.current_joints)
         step1[1] = 0 
         self.moving_like_robot(step1)
 
@@ -170,13 +170,14 @@ class Robot(Node):
         STEPS=10
         source = self.current_joints
         diff = joints - source
+        # print('diff, ',diff)
         step_size = diff / STEPS
 
         for i in range(1,11):
             self.stretch(source+ i * step_size)
             time.sleep(0.1)
 
-        self.current_joints = joints
+        self.current_joints = copy.deepcopy(joints)
 
     def stretch(self, joints):
         # m_jointOrder = copy.deepcopy(JOINT_ORDER)
@@ -304,11 +305,12 @@ class Robot(Node):
 
     def load_coke_can(self):
         modelXml = """<?xml version='1.0'?>
-                        <sdf version='1.6'>
+                        <sdf version='1.5'>
                             <model name="can1">
                                 <include>
                                 <static>false</static>
                                 <uri>model://coke_can</uri>
+                                <!-- uri>model://wood_cube_7_5cm</uri -->
                                 </include>
                             </model>
                             </sdf>"""
@@ -385,11 +387,12 @@ class Robot(Node):
         # print(type(msg.data))
         # print(len(msg.data))
         img = np.array(msg.data).reshape((720,1280))
-        cv2.imshow('RS D435 Camera Image', img)
-        key = cv2.waitKey(1)
-        # Press esc or 'q' to close the image window
-        if key & 0xFF == ord('q') or key == 27:
-            cv2.destroyAllWindows()
+
+        # cv2.imshow('RS D435 Camera Image', img)
+        # key = cv2.waitKey(1)
+        # # Press esc or 'q' to close the image window
+        # if key & 0xFF == ord('q') or key == 27:
+        #     cv2.destroyAllWindows()
 
 
 def generate_joints_for_length(args=None):
@@ -548,8 +551,8 @@ def grab_can_and_drop_delete_entity(robot, pose):
     else:
         print('No Joints found.')
     
-    robot.gripper_angle(0.1)
-    time.sleep(3)
+    robot.gripper_angle(0.30)
+    # time.sleep(3)
     robot.moving(np.array([m1+np.pi, m2, m3, 0.0, m5, 0.0]))
     robot.gripper_angle(1.57)
 
@@ -584,7 +587,9 @@ def main(args=None):
 
     for i in range(0,3):
         pose = drop_coke_can(robot)
+        # look_for_can(robot)
         grab_can_and_drop_delete_entity(robot, pose)
+
 
 
 def main_(args=None):
