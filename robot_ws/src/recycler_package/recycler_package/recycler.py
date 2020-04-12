@@ -31,12 +31,13 @@ from PyKDL import ChainJntToJacSolver  # For KDL Jacobians
 import pandas as pd
 from ament_index_python.packages import get_package_share_directory
 from hrim_actuator_gripper_srvs.srv import ControlFinger
-from std_msgs.msg import String,Int32MultiArray
+from std_msgs.msg import String, Int32MultiArray
 from sensor_msgs.msg import Image
 import cv2
 
 gym.logger.set_level(40)  # hide warnings
 
+FLAG_DEBUG_CAMERA = False
 
 JOINT_SUBSCRIBER = '/mara_controller/state'
 JOINT_PUBLISHER = '/mara_controller/command'
@@ -68,14 +69,13 @@ class Robot(Node):
         self.delete_entity_cli = self.create_client(
             DeleteEntity, '/delete_entity')
 
-        
         # Create a gripper client for service "/hrim_actuation_gripper_000000000004/goal"
-        self.gripper = self.create_client(ControlFinger, "/hrim_actuator_gripper_000000000004/fingercontrol")
+        self.gripper = self.create_client(
+            ControlFinger, "/hrim_actuator_gripper_000000000004/fingercontrol")
 
         # Wait for service to be avaiable before calling it
         while not self.gripper.wait_for_service(timeout_sec=1.0):
             self.get_logger().info('service not available, waiting again...')
-        
 
         self.initArm()
         self.subscription_img = self.create_subscription(
@@ -133,12 +133,11 @@ class Robot(Node):
 
         future = self.gripper.call_async(req)
         rclpy.spin_until_future_complete(self, future)
-            # Analyze the result
+        # Analyze the result
         if future.result() is not None:
             self.get_logger().info('Goal accepted: %d: ' % future.result().goal_accepted)
         else:
             self.get_logger().error('Exception while calling service: %r' % future.exception())
-
 
 
     def observation_callback(self, message):
@@ -154,7 +153,7 @@ class Robot(Node):
 
         # lift arm
         step1 = copy.deepcopy(self.current_joints)
-        step1[1] = 0 
+        step1[1] = 0
         self.moving_like_robot(step1)
 
         # rotate
@@ -165,18 +164,16 @@ class Robot(Node):
         # stetch arm
         self.moving_like_robot(joints)
 
-
-
     def moving_like_robot(self, joints):
 
-        STEPS=10
+        STEPS = 10
         source = self.current_joints
         diff = joints - source
         # print('diff, ',diff)
         step_size = diff / STEPS
 
-        for i in range(1,11):
-            self.stretch(source+ i * step_size)
+        for i in range(1, 11):
+            self.stretch(source + i * step_size)
             time.sleep(0.1)
 
         self.current_joints = copy.deepcopy(joints)
@@ -388,7 +385,7 @@ class Robot(Node):
     def get_img(self, msg):
         # print(type(msg.data))
         # print(len(msg.data))
-        self.img = np.array(msg.data).reshape((480,640,3))
+        self.img = np.array(msg.data).reshape((480, 640, 3))
 
         # #image still upside down. Need to rotate 180 degree?
         # cv2.imshow('RS D435 Camera Image', cv2.cvtColor(self.img, cv2.COLOR_RGB2BGR))
@@ -444,6 +441,7 @@ def generate_joints_for_length(args=None):
 
     print('END generate_joints_for_length().')
 
+
 def generate_joints_for_length_core(robot):
     STEP = 0.01
     for change in np.arange(-0.3, 1, STEP):
@@ -497,6 +495,7 @@ def generate_joints_for_line_outdated(args=None):
     rclpy.shutdown()
 
     print('END generate_joints_for_line().')
+
 
 def drop_coke_can(robot=None):
     if robot is None:
@@ -553,7 +552,7 @@ def grab_can_and_drop_delete_entity(robot, pose):
 
     else:
         print('No Joints found.')
-    
+
     robot.gripper_angle(0.25)
     # time.sleep(3)
     robot.moving(np.array([m1+np.pi, m2, m3, 0.0, m5, 0.0]))
@@ -561,7 +560,7 @@ def grab_can_and_drop_delete_entity(robot, pose):
 
 
 def look_for_can(robot):
-    robot.moving([-np.pi*3/4,0,0,0,-np.pi,0])
+    robot.moving([-np.pi*3/4, 0, 0, 0, -np.pi, 0])
     # robot.img
 
 
@@ -590,11 +589,10 @@ def main(args=None):
     robot = Robot()
     rclpy.spin_once(robot)
 
-    for i in range(0,3):
+    for i in range(0, 3):
         pose = drop_coke_can(robot)
         # look_for_can(robot)
         grab_can_and_drop_delete_entity(robot, pose)
-
 
 
 def main_(args=None):
