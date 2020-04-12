@@ -31,8 +31,9 @@ from PyKDL import ChainJntToJacSolver  # For KDL Jacobians
 import pandas as pd
 from ament_index_python.packages import get_package_share_directory
 from hrim_actuator_gripper_srvs.srv import ControlFinger
-
-
+from std_msgs.msg import String,Int32MultiArray
+from sensor_msgs.msg import Image
+import cv2
 
 gym.logger.set_level(40)  # hide warnings
 
@@ -77,6 +78,12 @@ class Robot(Node):
         
 
         self.initArm()
+        self.subscription_img = self.create_subscription(
+            Image,
+            '/rs_camera/rs_d435/image_raw',
+            self.get_img,
+            10)
+        self.subscription_img  # prevent unused variable warning
 
     def initArm(self):
         print('test')
@@ -373,6 +380,16 @@ class Robot(Node):
         urdf_string = urdf_file.read()
         print("urdf_string:", urdf_string)
         return urdf_string
+
+    def get_img(self, msg):
+        # print(type(msg.data))
+        # print(len(msg.data))
+        img = np.array(msg.data).reshape((720,1280))
+        cv2.imshow('RS D435 Camera Image', img)
+        key = cv2.waitKey(1)
+        # Press esc or 'q' to close the image window
+        if key & 0xFF == ord('q') or key == 27:
+            cv2.destroyAllWindows()
 
 
 def generate_joints_for_length(args=None):
