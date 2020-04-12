@@ -149,7 +149,9 @@ class Robot(Node):
         # self.get_logger().info(str(observation_msg))
 
     def moving(self, joints):
-        
+        if type(joints) is list:
+            joints = np.array(joints)
+
         # lift arm
         step1 = copy.deepcopy(self.current_joints)
         step1[1] = 0 
@@ -386,9 +388,10 @@ class Robot(Node):
     def get_img(self, msg):
         # print(type(msg.data))
         # print(len(msg.data))
-        img = np.array(msg.data).reshape((720,1280))
+        self.img = np.array(msg.data).reshape((480,640,3))
 
-        # cv2.imshow('RS D435 Camera Image', img)
+        # #image still upside down. Need to rotate 180 degree?
+        # cv2.imshow('RS D435 Camera Image', cv2.cvtColor(self.img, cv2.COLOR_RGB2BGR))
         # key = cv2.waitKey(1)
         # # Press esc or 'q' to close the image window
         # if key & 0xFF == ord('q') or key == 27:
@@ -551,13 +554,15 @@ def grab_can_and_drop_delete_entity(robot, pose):
     else:
         print('No Joints found.')
     
-    robot.gripper_angle(0.30)
+    robot.gripper_angle(0.25)
     # time.sleep(3)
     robot.moving(np.array([m1+np.pi, m2, m3, 0.0, m5, 0.0]))
     robot.gripper_angle(1.57)
 
 
-
+def look_for_can(robot):
+    robot.moving([-np.pi*3/4,0,0,0,-np.pi,0])
+    # robot.img
 
 
 def search_joints(joints, x_distance, z):
@@ -565,7 +570,7 @@ def search_joints(joints, x_distance, z):
     idx = np.where((x_distance < joints['x']) & (
         joints['x'] < x_distance+0.1) & (joints['z'] < z))
     if np.sum(idx) > 0:
-        print('data count:', np.sum(idx))
+        # print('data count:', np.sum(idx))
         data = joints.loc[idx][['m2', 'm3', 'm5']].iloc[0]
         # data = joints.loc[idx][['m2','m3','m5']].median()
     return data
