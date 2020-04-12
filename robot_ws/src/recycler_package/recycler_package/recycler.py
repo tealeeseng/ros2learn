@@ -37,7 +37,9 @@ import cv2
 
 gym.logger.set_level(40)  # hide warnings
 
+# FLAG_DEBUG_CAMERA = True
 FLAG_DEBUG_CAMERA = False
+
 
 JOINT_SUBSCRIBER = '/mara_controller/state'
 JOINT_PUBLISHER = '/mara_controller/command'
@@ -385,14 +387,19 @@ class Robot(Node):
     def get_img(self, msg):
         # print(type(msg.data))
         # print(len(msg.data))
-        self.img = np.array(msg.data).reshape((480, 640, 3))
+        img = np.array(msg.data).reshape((480, 640, 3))
+        self.image = cv2.rotate(img, cv2.ROTATE_180)
 
+        
         # #image still upside down. Need to rotate 180 degree?
-        # cv2.imshow('RS D435 Camera Image', cv2.cvtColor(self.img, cv2.COLOR_RGB2BGR))
-        # key = cv2.waitKey(1)
-        # # Press esc or 'q' to close the image window
-        # if key & 0xFF == ord('q') or key == 27:
-        #     cv2.destroyAllWindows()
+        if FLAG_DEBUG_CAMERA:
+            image = cv2.cvtColor(self.image, cv2.COLOR_RGB2BGR)
+
+            cv2.imshow('RS D435 Camera Image', image)
+            key = cv2.waitKey(1)
+            # Press esc or 'q' to close the image window
+            if key & 0xFF == ord('q') or key == 27:
+                cv2.destroyAllWindows()
 
 
 def generate_joints_for_length(args=None):
@@ -591,7 +598,8 @@ def main(args=None):
 
     for i in range(0, 3):
         pose = drop_coke_can(robot)
-        # look_for_can(robot)
+        if FLAG_DEBUG_CAMERA:
+            look_for_can(robot)
         grab_can_and_drop_delete_entity(robot, pose)
 
 
