@@ -64,7 +64,7 @@ def make_env():
 # Get dictionary from baselines/ppo2/defaults
 # defaults = get_learn_function_defaults('ppo2', 'mara_mlp')
 defaults = dict(
-        num_layers = 8,
+        num_layers = 2,
         num_hidden = 256,
         layer_norm = False,
         # activation = tf.nn.relu,
@@ -85,15 +85,16 @@ defaults = dict(
         total_timesteps = 1e8,
         save_interval = 10,
         # env_name = 'MARA-v0',
-        # env_name = 'MARARandomTarget-v0',
-        env_name = 'MARARandomTarget2DEnv-v0',
+        env_name = 'MARARandomTarget-v0',
+        # env_name = 'MARARandomTarget2DEnv-v0',
         #env_name = 'MARAReal-v0',
         #env_name = 'MARAOrient-v0',
         # env_name = 'MARACollision-v0',
         # env_name = 'MARACollisionOrient-v0',
         transfer_path = None,
         # transfer_path = '/tmp/ros2learn/MARA-v0/ppo2_mlp/2019-02-19_12h47min/checkpoints/best',
-        trained_path = './models/MARARandomTarget2DEnv-v0/ppo2_mlp/2020-03-29_00h18min/checkpoints/best'
+        # trained_path = './models/MARARandomTarget2DEnv-v0/ppo2_mlp/2020-03-29_00h18min/checkpoints/best'
+        trained_path = './models/MARARandomTarget2DEnv-v0/ppo2_mlp/2020-04-04_16h26min/checkpoints/00150'
     )
 
 # Create needed folders
@@ -155,9 +156,9 @@ while loop:
     print("ee_translation[x, y, z]: ", obs[0][6:9])
     print("ee_orientation[w, x, y, z]: ", obs[0][9:13])
 
-    csv_file.write_obs(obs[0], csv_files[0], defaults['env_name'])
-    csv_file.write_acs(actions[0], csv_files[1])
-    csv_file.write_rew(reward, csv_files[2])
+    # csv_file.write_obs(obs[0], csv_files[0], defaults['env_name'])
+    # csv_file.write_acs(actions[0], csv_files[1])
+    # csv_file.write_rew(reward, csv_files[2])
 
     # if np.allclose(obs[0][6:9], np.asarray([0., 0., 0.]), atol=0.005 ): # lock if less than 5mm error in each axis
     #     env.step_runtime(obs[0][:6])
