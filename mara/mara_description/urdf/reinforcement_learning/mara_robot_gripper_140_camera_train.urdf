@@ -734,11 +734,16 @@
       <geometry>
         <mesh filename="package://robotiq_140_gripper_description/meshes/robotiq_140_left_outer_finger.dae" scale="0.001 0.001 0.001"/>
       </geometry>
+      <contact_coefficients mu="1" kp="1.0" kd="1.0"/>
     </collision>
   </link>
   <gazebo reference="left_outer_finger">
     <material>Gazebo/Black</material>
     <selfCollide>True</selfCollide>
+    <mu1>1.0</mu1>  
+  <mu2>1.0</mu2>  
+  <minDepth>0.003</minDepth>  
+  <maxVel>0</maxVel> 
   </gazebo>
   <link name="right_outer_finger">
     <inertial>
@@ -760,11 +765,16 @@
       <geometry>
         <mesh filename="package://robotiq_140_gripper_description/meshes/robotiq_140_right_outer_finger.dae" scale="0.001 0.001 0.001"/>
       </geometry>
+      <contact_coefficients mu="1" kp="1.0" kd="1.0"/>
     </collision>
   </link>
   <gazebo reference="right_outer_finger">
     <material>Gazebo/Black</material>
     <selfCollide>True</selfCollide>
+    <mu1>1.0</mu1>  
+  <mu2>1.0</mu2>  
+  <minDepth>0.003</minDepth>  
+  <maxVel>0</maxVel> 
   </gazebo>
   <joint name="robotiq_arg2f_base_to_left_outer_knuckle" type="revolute">
     <origin rpy="0 0 0" xyz="0.0306 0 0.05466"/>
