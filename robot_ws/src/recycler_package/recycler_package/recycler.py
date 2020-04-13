@@ -271,8 +271,9 @@ class Robot(Node):
         if delete_future.result() is not None:
             self.get_logger().info('delete_future response: %r' % delete_future.result())
 
-    def spawn_target(self, urdf_obj):
-        self.targetPosition = self.sample_position()
+    def spawn_target(self, urdf_obj, position):
+        # self.targetPosition = self.sample_position()
+        self.targetPosition = position
 
         while not self.spawn_cli.wait_for_service(timeout_sec=1.0):
             self.get_logger().info('/spawn_entity service not available, waiting again...')
@@ -386,19 +387,28 @@ class Robot(Node):
     def get_img(self, msg):
         # print(type(msg.data))
         # print(len(msg.data))
-        img = np.array(msg.data).reshape((480, 640, 3))
-        self.image = cv2.rotate(img, cv2.ROTATE_180)
+
+        self.raw_img = msg.data
+
+        # if self.capturing:            
+        #     img = np.array(msg.data).reshape((480, 640, 3))
+        #     self.image = cv2.rotate(img, cv2.ROTATE_180)
 
         
         # #image still upside down. Need to rotate 180 degree?
-        if FLAG_DEBUG_CAMERA:
-            image = cv2.cvtColor(self.image, cv2.COLOR_RGB2BGR)
+        # if FLAG_DEBUG_CAMERA:
+        #     image = cv2.cvtColor(self.image, cv2.COLOR_RGB2BGR)
 
-            cv2.imshow('RS D435 Camera Image', image)
-            key = cv2.waitKey(1)
-            # Press esc or 'q' to close the image window
-            if key & 0xFF == ord('q') or key == 27:
-                cv2.destroyAllWindows()
+        #     cv2.imshow('RS D435 Camera Image', image)
+        #     key = cv2.waitKey(1)
+        #     # Press esc or 'q' to close the image window
+        #     if key & 0xFF == ord('q') or key == 27:
+        #         cv2.destroyAllWindows()
+
+    def captureImage(self):
+
+        img = np.array(self.raw_img).reshape((480, 640, 3))
+        self.image = cv2.rotate(img, cv2.ROTATE_180)
 
 
 def generate_joints_for_length(args=None):
@@ -511,7 +521,16 @@ def drop_coke_can(robot=None):
 
     obj = "coke0"
     robot.delete_can(obj)
-    pose = robot.spawn_target(obj)
+    pose = robot.spawn_target(obj, robot.sample_position())
+    rclpy.spin_once(robot)
+
+    return pose
+
+def drop_coke_can_on(robot, position):
+
+    obj = "coke0"
+    robot.delete_can(obj)
+    pose = robot.spawn_target(obj, position)
     rclpy.spin_once(robot)
 
     return pose
@@ -559,7 +578,7 @@ def grab_can_and_drop_delete_entity(robot, pose):
     else:
         print('No Joints found.')
 
-    robot.gripper_angle(0.25)
+    robot.gripper_angle(0.3)
     time.sleep(3)
     robot.moving(np.array([m1+np.pi, m2, m3, 0.0, m5, 0.0]))
     robot.gripper_angle(1.57)
@@ -567,6 +586,10 @@ def grab_can_and_drop_delete_entity(robot, pose):
 
 def look_for_can(robot):
     robot.moving([-np.pi*3/4, 0, 0, 0, -np.pi, 0])
+    # time.sleep(2)
+    print('look_for_can, moved')
+
+    # robot.image
     # robot.img
 
 
@@ -595,10 +618,18 @@ def main(args=None):
     robot = Robot()
     rclpy.spin_once(robot)
 
-    for i in range(0, 3):
+    for i in range(5, 12):
+        ## for images collection
+        # pose = drop_coke_can_on(robot, [-0.05*i, 0.05*i, 0.15])
+
         pose = drop_coke_can(robot)
+        
         if FLAG_DEBUG_CAMERA:
             look_for_can(robot)
+            robot.captureImage()
+            # time.sleep(1)
+            cv2.imwrite(str(i)+'.png', robot.image)
+
         grab_can_and_drop_delete_entity(robot, pose)
 
 
