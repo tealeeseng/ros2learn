@@ -635,9 +635,9 @@
   <gazebo reference="left_inner_knuckle">
     <material>Gazebo/Black</material>
     <selfCollide>False</selfCollide>
-      <mu1>1.0</mu1>
-      <mu2>1.0</mu2>
-	<kd>0.001</kd>
+      <mu1>5.0</mu1>
+      <mu2>5.0</mu2>
+	<kd>0.01</kd>
 	<minDepth>0.003</minDepth>
 	<fdir1>1 1 1</fdir1>
 <maxVel>0.0</maxVel>
@@ -686,9 +686,9 @@
   <gazebo reference="right_inner_knuckle">
     <material>Gazebo/Black</material>
     <selfCollide>False</selfCollide>
-      <mu1>1.0</mu1>
-      <mu2>1.0</mu2>
-	<kd>0.001</kd>
+      <mu1>5.0</mu1>
+      <mu2>5.0</mu2>
+	<kd>0.01</kd>
 	<minDepth>0.003</minDepth>
 	<fdir1>1 1 1</fdir1>
 <maxVel>0.0</maxVel>
@@ -736,10 +736,10 @@
   </link>
   <gazebo reference="left_inner_finger">
     <material>Gazebo/Black</material>
-    <selfCollide>True</selfCollide>
-      <mu1>1.0</mu1>
-      <mu2>1.0</mu2>
-	<kd>0.001</kd>
+    <selfCollide>False</selfCollide>
+      <mu1>5.0</mu1>
+      <mu2>5.0</mu2>
+	<kd>0.01</kd>
 	<minDepth>0.003</minDepth>
 	<fdir1>1 1 1</fdir1>
 <maxVel>0.0</maxVel>
@@ -787,10 +787,10 @@
   </link>
   <gazebo reference="right_inner_finger">
     <material>Gazebo/Black</material>
-    <selfCollide>True</selfCollide>
-      <mu1>1.0</mu1>
-      <mu2>1.0</mu2>
-	<kd>0.001</kd>
+    <selfCollide>False</selfCollide>
+      <mu1>5.0</mu1>
+      <mu2>5.0</mu2>
+	<kd>0.01</kd>
 	<minDepth>0.003</minDepth>
 	<fdir1>1 1 1</fdir1>
 <maxVel>0.0</maxVel>
