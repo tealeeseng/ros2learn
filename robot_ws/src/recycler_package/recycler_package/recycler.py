@@ -579,7 +579,7 @@ def grab_can_and_drop_delete_entity(robot, pose):
         print('No Joints found.')
 
     robot.gripper_angle(0.3)
-    time.sleep(3)
+    # time.sleep(3)
     robot.moving(np.array([m1+np.pi, m2, m3, 0.0, m5, 0.0]))
     robot.gripper_angle(1.57)
 
@@ -620,15 +620,26 @@ def main(args=None):
 
     for i in range(5, 12):
         ## for images collection
-        # pose = drop_coke_can_on(robot, [-0.05*i, 0.05*i, 0.15])
 
-        pose = drop_coke_can(robot)
+        if FLAG_DEBUG_CAMERA:
+            pose = drop_coke_can_on(robot, [-0.05*i, 0.05*i, 0.15])
+        else:
+            pose = drop_coke_can(robot)
         
         if FLAG_DEBUG_CAMERA:
             look_for_can(robot)
             robot.captureImage()
             # time.sleep(1)
-            cv2.imwrite(str(i)+'.png', robot.image)
+            image = robot.image
+
+            cv2.imwrite(str(i)+'.png', image)
+
+            image = cv2.cvtColor(image, cv2.COLOR_RGB2BGR)
+            cv2.imshow('RS D435 Camera Image', image)
+            key = cv2.waitKey(1)
+            # Press esc or 'q' to close the image window
+            if key & 0xFF == ord('q') or key == 27:
+                cv2.destroyAllWindows()
 
         grab_can_and_drop_delete_entity(robot, pose)
 
