@@ -582,7 +582,7 @@
   </link>
   <gazebo reference="left_outer_knuckle">
     <material>Gazebo/Grey</material>
-    <selfCollide>True</selfCollide>
+    <selfCollide>False</selfCollide>
   </gazebo>
   <link name="right_outer_knuckle">
     <inertial>
@@ -608,7 +608,7 @@
   </link>
   <gazebo reference="right_outer_knuckle">
     <material>Gazebo/Grey</material>
-    <selfCollide>True</selfCollide>
+    <selfCollide>False</selfCollide>
   </gazebo>
   <link name="left_inner_knuckle">
     <inertial>
@@ -635,6 +635,31 @@
   <gazebo reference="left_inner_knuckle">
     <material>Gazebo/Black</material>
     <selfCollide>False</selfCollide>
+      <mu1>1.0</mu1>
+      <mu2>1.0</mu2>
+	<kd>0.001</kd>
+	<minDepth>0.003</minDepth>
+	<fdir1>1 1 1</fdir1>
+<maxVel>0.0</maxVel>
+<maxContacts>10</maxContacts>
+    <inertial>
+        <inertia>
+            <ixx>0.01</ixx>
+            <ixy>0</ixy>
+            <ixz>0</ixz>
+            <iyy>0.01</iyy>
+            <iyz>0</iyz>
+            <izz>0.01</izz>
+        </inertia>
+        <mass>0.1</mass>
+    </inertial>
+    <collision name="collision_lik">
+        <geometry>
+            <box>
+                <size>0.7 0.9 0.7</size>
+            </box>
+        </geometry>
+    </collision>
   </gazebo>
   <link name="right_inner_knuckle">
     <inertial>
@@ -661,12 +686,37 @@
   <gazebo reference="right_inner_knuckle">
     <material>Gazebo/Black</material>
     <selfCollide>False</selfCollide>
+      <mu1>1.0</mu1>
+      <mu2>1.0</mu2>
+	<kd>0.001</kd>
+	<minDepth>0.003</minDepth>
+	<fdir1>1 1 1</fdir1>
+<maxVel>0.0</maxVel>
+<maxContacts>100</maxContacts>
+    <inertial>
+        <inertia>
+            <ixx>0.01</ixx>
+            <ixy>0</ixy>
+            <ixz>0</ixz>
+            <iyy>0.01</iyy>
+            <iyz>0</iyz>
+            <izz>0.01</izz>
+        </inertia>
+        <mass>0.1</mass>
+    </inertial>
+    <collision name="collision_rik">
+        <geometry>
+            <box>
+                <size>0.7 0.9 0.7</size>
+            </box>
+        </geometry>
+    </collision>
   </gazebo>
   <link name="left_inner_finger">
     <inertial>
       <origin rpy="0 0 0" xyz="-0.01563 0 0.02522"/>
       <mass value="0.045"/>
-      <inertia ixx="26663E-9" ixy="0" ixz="5579E-9" iyy="28009E-9" iyz="0" izz="4368E-9"/>
+      <inertia ixx="0.01" ixy="0" ixz="0.1" iyy="28009E-9" iyz="0" izz="0.01"/>
     </inertial>
     <visual>
       <origin rpy="0 0 0" xyz="0 0 0"/>
@@ -686,13 +736,38 @@
   </link>
   <gazebo reference="left_inner_finger">
     <material>Gazebo/Black</material>
-    <selfCollide>False</selfCollide>
+    <selfCollide>True</selfCollide>
+      <mu1>1.0</mu1>
+      <mu2>1.0</mu2>
+	<kd>0.001</kd>
+	<minDepth>0.003</minDepth>
+	<fdir1>1 1 1</fdir1>
+<maxVel>0.0</maxVel>
+<maxContacts>100</maxContacts>
+    <inertial>
+        <inertia>
+            <ixx>0.01</ixx>
+            <ixy>0</ixy>
+            <ixz>0</ixz>
+            <iyy>0.01</iyy>
+            <iyz>0</iyz>
+            <izz>0.01</izz>
+        </inertia>
+        <mass>0.1</mass>
+    </inertial>
+    <collision name="collision_lif">
+        <geometry>
+            <box>
+                <size>0.7 0.9 0.7</size>
+            </box>
+        </geometry>
+    </collision>
   </gazebo>
   <link name="right_inner_finger">
     <inertial>
       <origin rpy="0 0 0" xyz="0.01563 0 0.02522"/>
       <mass value="0.045"/>
-      <inertia ixx="26663E-9" ixy="0" ixz="-5579E-9" iyy="28009E-9" iyz="0" izz="4368E-9"/>
+      <inertia ixx="0.01" ixy="0" ixz="-0.01" iyy="28009E-9" iyz="0" izz="0.01"/>
     </inertial>
     <visual>
       <origin rpy="0 0 0" xyz="0 0 0"/>
@@ -712,7 +787,32 @@
   </link>
   <gazebo reference="right_inner_finger">
     <material>Gazebo/Black</material>
-    <selfCollide>False</selfCollide>
+    <selfCollide>True</selfCollide>
+      <mu1>1.0</mu1>
+      <mu2>1.0</mu2>
+	<kd>0.001</kd>
+	<minDepth>0.003</minDepth>
+	<fdir1>1 1 1</fdir1>
+<maxVel>0.0</maxVel>
+<maxContacts>100</maxContacts>
+    <inertial>
+        <inertia>
+            <ixx>0.01</ixx>
+            <ixy>0</ixy>
+            <ixz>0</ixz>
+            <iyy>0.01</iyy>
+            <iyz>0</iyz>
+            <izz>0.01</izz>
+        </inertia>
+        <mass>0.1</mass>
+    </inertial>
+    <collision name="collision_lif">
+        <geometry>
+            <box>
+                <size>0.7 0.9 0.7</size>
+            </box>
+        </geometry>
+    </collision>
   </gazebo>
   <link name="left_outer_finger">
     <inertial>
@@ -734,16 +834,11 @@
       <geometry>
         <mesh filename="package://robotiq_140_gripper_description/meshes/robotiq_140_left_outer_finger.dae" scale="0.001 0.001 0.001"/>
       </geometry>
-      <contact_coefficients mu="1" kp="1.0" kd="1.0"/>
     </collision>
   </link>
   <gazebo reference="left_outer_finger">
     <material>Gazebo/Black</material>
     <selfCollide>True</selfCollide>
-    <mu1>1.0</mu1>  
-  <mu2>1.0</mu2>  
-  <minDepth>0.003</minDepth>  
-  <maxVel>0</maxVel> 
   </gazebo>
   <link name="right_outer_finger">
     <inertial>
@@ -765,16 +860,11 @@
       <geometry>
         <mesh filename="package://robotiq_140_gripper_description/meshes/robotiq_140_right_outer_finger.dae" scale="0.001 0.001 0.001"/>
       </geometry>
-      <contact_coefficients mu="1" kp="1.0" kd="1.0"/>
     </collision>
   </link>
   <gazebo reference="right_outer_finger">
     <material>Gazebo/Black</material>
     <selfCollide>True</selfCollide>
-    <mu1>1.0</mu1>  
-  <mu2>1.0</mu2>  
-  <minDepth>0.003</minDepth>  
-  <maxVel>0</maxVel> 
   </gazebo>
   <joint name="robotiq_arg2f_base_to_left_outer_knuckle" type="revolute">
     <origin rpy="0 0 0" xyz="0.0306 0 0.05466"/>
@@ -844,7 +934,7 @@
           <lower>0</lower>
           <upper>0.78574722925</upper>
           <velocity>3.54</velocity>
-          <effort>18.65</effort>
+          <effort>18.5</effort>
         </limit>
       </axis>
     </joint>
@@ -858,7 +948,7 @@
           <lower>0</lower>
           <upper>0.78574722925</upper>
           <velocity>3.54</velocity>
-          <effort>18.65</effort>
+          <effort>18.50</effort>
         </limit>
       </axis>
     </joint>
@@ -866,6 +956,10 @@
       <kp>600</kp>
       <ki>0.1</ki>
       <kd>0.01</kd>
+      <mu1>1.0</mu1>
+      <mu2>1.0</mu2>
+      <minDepth>0.003</minDepth>
+      <maxContacts>100</maxContacts>
       <min_velocity>30</min_velocity>
       <max_velocity>250</max_velocity>
       <radius>156</radius>

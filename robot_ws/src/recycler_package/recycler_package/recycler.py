@@ -311,7 +311,6 @@ class Robot(Node):
                                 <include>
                                 <static>false</static>
                                 <uri>model://coke_can</uri>
-                                <!-- uri>model://wood_cube_7_5cm</uri -->
                                 </include>
                             </model>
                             </sdf>"""
@@ -561,7 +560,7 @@ def grab_can_and_drop_delete_entity(robot, pose):
         print('No Joints found.')
 
     robot.gripper_angle(0.25)
-    # time.sleep(3)
+    time.sleep(3)
     robot.moving(np.array([m1+np.pi, m2, m3, 0.0, m5, 0.0]))
     robot.gripper_angle(1.57)
 
