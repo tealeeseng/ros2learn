@@ -593,7 +593,7 @@ def grab_can_and_drop_delete_entity(robot, pose):
         print('No Joints found.')
 
     robot.gripper_angle(0.3)
-    # time.sleep(3)
+    time.sleep(3)
     robot.moving(np.array([m1+np.pi, m2, m3, 0.0, m5, 0.0]))
     robot.gripper_angle(1.57)
 
@@ -642,10 +642,9 @@ def main(args=None):
         
         if FLAG_DEBUG_CAMERA:
             look_for_can(robot)
+            time.sleep(1)
             robot.captureImage()
-            # time.sleep(1)
             image = robot.image
-
             cv2.imwrite(str(i)+'.png', image)
 
             image = cv2.cvtColor(image, cv2.COLOR_RGB2BGR)

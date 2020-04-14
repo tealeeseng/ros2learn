@@ -493,6 +493,7 @@
     <sensor name="sensor_camera" type="camera">
       <alwaysOn>true</alwaysOn>
       <visualize>true</visualize>
+      <update_rate>2</update_rate>
       <camera>
         <image>
           <width>640</width>
