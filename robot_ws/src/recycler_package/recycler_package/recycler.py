@@ -14,6 +14,7 @@ import transforms3d as tf3d
 import argparse
 import subprocess
 from gazebo_msgs.srv import SpawnEntity
+from gazebo_msgs.msg import ContactsState
 from gym.utils import seeding
 from gym_gazebo2.utils import ut_generic, ut_launch, ut_mara, ut_math, ut_gazebo, tree_urdf, general_utils
 from gym import utils, spaces
@@ -86,6 +87,9 @@ class Robot(Node):
             self.get_img,
             10)
         self.subscription_img  # prevent unused variable warning
+        self.subscription_contact = self.create_subscription(ContactState,'/gazebo_contacts',
+            self.get_contact,
+            qos_profile=qos_profile_sensor_data) # QoS profile for reading (joint) sensors
 
     def initArm(self):
         print('start initArm()')
@@ -410,6 +414,16 @@ class Robot(Node):
         img = np.array(self.raw_img).reshape((480, 640, 3))
         self.image = cv2.rotate(img, cv2.ROTATE_180)
 
+    def get_contact(self, msg):
+        '''
+        Retrieve contact points for gripper fingers
+        '''
+        if msg.collision1_name in ['mara::left_inner_finger::left_inner_finger_collision',
+                                   'mara::right_inner_finger::right_inner_finger_collision']:
+            collision1_side = msg.collision1_name
+            contact1_positions = len(msg.contact_positions)
+            # print(msg.collision1_name)
+            # print(len(msg.contact_positions))
 
 def generate_joints_for_length(args=None):
     rclpy.init(args=args)
