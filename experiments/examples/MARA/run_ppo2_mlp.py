@@ -64,6 +64,8 @@ def make_env():
 # Get dictionary from baselines/ppo2/defaults
 defaults = get_learn_function_defaults('ppo2', 'mara_mlp')
 
+defaults['trained_path']='models/MARA-v0/ppo2_mlp/singlePoint-2020-04-11_20h20min/checkpoints/best'
+
 # Create needed folders
 try:
     logdir = defaults['trained_path'].split('checkpoints')[0] + 'results' + defaults['trained_path'].split('checkpoints')[1]
