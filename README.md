@@ -3,6 +3,7 @@ Our robotic workspace can be found at https://github.com/XiaoyanYang2008/ros2lea
 
 We are grateful to Acutronic Robotics work!
 
+---
 
 <a href="http://www.acutronicrobotics.com"><img src="https://github.com/AcutronicRobotics/gym-gazebo2/blob/dashing/imgs/alr_logo.png" align="left" width="190"></a>
 
