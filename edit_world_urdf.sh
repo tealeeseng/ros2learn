@@ -1,0 +1,1 @@
+vi mara/mara_description/urdf/reinforcement_learning/mara_robot_gripper_140_camera_train.urdf
