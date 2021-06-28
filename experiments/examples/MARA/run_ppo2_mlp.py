@@ -5,7 +5,7 @@ import gym
 import gym_gazebo2
 import numpy as np
 import multiprocessing
-import tensorflow as tf
+import tensorflow.compat.v1 as tf
 import write_csv as csv_file
 
 from importlib import import_module

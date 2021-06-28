@@ -143,14 +143,14 @@ def generateLaunchDescriptionMara(gzclient, realSpeed, multiInstance, port, urdf
         ExecuteProcess(
             cmd=[gazeboCmd, '-s', 'libgazebo_ros_factory.so', '-s',
                  'libgazebo_ros_init.so', worldPath], output='screen', env=envs),
-        Node(package='mara_utils_scripts', node_executable='spawn_mara.py',
+        Node(package='mara_utils_scripts', executable='spawn_mara.py',
              arguments=[urdf],
              output='screen'),
         Node(package='hros_cognition_mara_components',
-             node_executable='hros_cognition_mara_components', output='screen',
+             executable='hros_cognition_mara_components', output='screen',
              arguments=["-motors", installDir \
              + "/share/hros_cognition_mara_components/motors.yaml", "sim"]),
-        Node(package='mara_contact_publisher', node_executable='mara_contact_publisher',
+        Node(package='mara_contact_publisher', executable='mara_contact_publisher',
              output='screen')
     ])
     return launchDesc

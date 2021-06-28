@@ -4,7 +4,7 @@ import time
 from datetime import datetime
 import gym
 import gym_gazebo2
-import tensorflow as tf
+import tensorflow.compat.v1 as tf
 import multiprocessing
 
 from importlib import import_module
